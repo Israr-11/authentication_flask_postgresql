@@ -1,6 +1,6 @@
 # Authentication and Authorization with Flask and PostgreSQL
 
-This project demonstrates a basic authentication and authorization system built with **Flask**, **PostgreSQL**, and **JWT**.
+This project demonstrates an authentication and authorization system built with **Flask**, **PostgreSQL**, and **JWT**.
 It includes:
 
 * User registration with email validation and password hashing (bcrypt).
