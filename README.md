@@ -20,10 +20,12 @@ It includes:
 
 ```bash
 # Clone the repo
-git clone [https://github.com/<your-username>/<your-repo>](https://github.com/Israr-11/authentication_flask_postgresql/).git
-cd <your-repo>
+git clone https://github.com/Israr-11/authentication_flask_postgresql.git
+cd authentication_flask_postgresql
+```
 
-# Create and activate virtual environment
+
+# Create and activate a virtual environment
 python -m venv venv
 .\venv\Scripts\activate   # (Windows PowerShell)
 
