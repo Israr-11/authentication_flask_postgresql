@@ -1,4 +1,4 @@
-# Authentication & Authorization with Flask and PostgreSQL
+# Authentication and Authorization with Flask and PostgreSQL
 
 This project demonstrates a basic authentication and authorization system built with **Flask**, **PostgreSQL**, and **JWT**.
 It includes:
@@ -22,8 +22,6 @@ It includes:
 # Clone the repo
 git clone https://github.com/Israr-11/authentication_flask_postgresql.git
 cd authentication_flask_postgresql
-```
-
 
 # Create and activate a virtual environment
 python -m venv venv
