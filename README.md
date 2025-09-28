@@ -20,7 +20,7 @@ It includes:
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-username>/<your-repo>.git
+git clone [https://github.com/<your-username>/<your-repo>](https://github.com/Israr-11/authentication_flask_postgresql/).git
 cd <your-repo>
 
 # Create and activate virtual environment
