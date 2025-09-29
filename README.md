@@ -5,7 +5,7 @@ It includes secure user registration, email verification, login with tokens, pas
 
 ---
 
-## 🔑 Complete Authentication Flow
+## Complete Authentication Flow
 
 ### 1. **User Registration**
 
