@@ -1,11 +1,13 @@
-from models.auth_model import db, User
+from models.user_model import db, User
 from flask_jwt_extended import create_access_token, create_refresh_token
 from email_validator import validate_email, EmailNotValidError
 
 class AuthService:
-    def register_user(self, name, email, password):
+    def register_user(self, email, name, password):
         """Register a new user"""
 
+        print(f'Attempting to register user with email: {email}')
+        print(f'Name: {name}, Password: {"*" * len(password) if password else None}')
         # Validate email
         try:
             validate_email(email)

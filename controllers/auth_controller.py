@@ -9,6 +9,7 @@ class AuthController:
     def register(self):
         """Register a new user"""
         data = request.get_json()
+        print(f'Received registration data: {data}')
         
         # IF DATA OR EMAIL, NAME OR PASSWORD MISSING, RETURN ERROR
         if not data or not data.get('email') or not data.get('name') or not data.get('password'):
