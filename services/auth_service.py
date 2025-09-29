@@ -96,7 +96,7 @@ class AuthService:
             
         # GENERATE ACCESS TOKEN
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={
                 "email": user.email,
                 "role": user.role
@@ -130,7 +130,7 @@ class AuthService:
             
         # GENERATE NEW ACCESS TOKEN
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={
                 "email": user.email,
                 "role": user.role
@@ -148,7 +148,7 @@ class AuthService:
     def request_password_reset(self, email):
         """Generate and send password reset token"""
         user = User.query.filter_by(email=email).first()
-        
+    
         # DON'T REVEAL IF EMAIL EXISTS FOR SECURITY
         if not user:
             return True, None
@@ -160,6 +160,7 @@ class AuthService:
             expiration_hours=1
         )
         
+        print("Reset Token:", reset_token)  # FOR DEBUGGING PURPOSES
         # SEND PASSWORD RESET EMAIL
         try:
             self._get_email_service().send_password_reset_email(

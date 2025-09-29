@@ -95,11 +95,12 @@ class AuthController:
     def refresh(self):
         """Generate new access token using refresh token"""
         data = request.get_json()
-        
+        print("Refresh request data:", data)  # FOR DEBUGGING PURPOSES
         if not data or not data.get('refresh_token'):
             return jsonify({"error": "Refresh token is required"}), 400
         
         refresh_token = data.get('refresh_token')
+        print("Received refresh token:", refresh_token)  # FOR DEBUGGING PURPOSES
         
         # GET NEW ACCESS TOKEN
         result, error = self.auth_service.refresh_access_token(refresh_token)
@@ -144,7 +145,7 @@ class AuthController:
             return jsonify({"error": "Email is required"}), 400
         
         email = data.get('email')
-        
+        print("Email for password reset:", email)  # FOR DEBUGGING PURPOSES
         # REQUEST PASSWORD RESET
         success, error = self.auth_service.request_password_reset(email)
         
@@ -178,9 +179,9 @@ class AuthController:
         """Get current user details (protected route example)"""
         # GET USER ID FROM ACCESS TOKEN
         user_id = get_jwt_identity()
-        
+        print("Current user ID from token:", user_id)  # FOR DEBUGGING PURPOSES
         # GET USER FROM DATABASE
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         
         if not user:
             return jsonify({"error": "User not found"}), 404
