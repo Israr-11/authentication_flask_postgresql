@@ -5,7 +5,6 @@ from services.email_service import EmailService
 from flask_jwt_extended import create_access_token
 from flask import current_app
 import re
-# IMPORT UTILITY FUNCTIONS
 from utils.auth_utils import (
     generate_verification_token,
     validate_verification_token,
@@ -13,7 +12,11 @@ from utils.auth_utils import (
     validate_refresh_token,
     revoke_refresh_token
 )
-from utils.user_utils import validate_password_strength
+from utils.user_utils import (
+    hash_password, 
+    check_password,
+    validate_password_strength
+)
 
 class AuthService:
     def __init__(self):
@@ -41,14 +44,14 @@ class AuthService:
         if not is_valid:
             return None, message
             
-        # CREATE NEW USER (UNVERIFIED)
+        # CREATE NEW USER (UNVERIFIED) WITH HASHED PASSWORD
         user = User(
             name=name,
             email=email,
             is_verified=False,
-            role='user'
+            role='user',
+            password_hash=hash_password(password)  
         )
-        user.set_password(password)
         
         # SAVE TO DATABASE
         db.session.add(user)
@@ -76,7 +79,7 @@ class AuthService:
         
     def verify_email(self, token):
         """Verify user email with token"""
-        # USE UTILITY FUNCTION TO VALIDATE TOKEN
+        # UTILITY FUNCTION TO VALIDATE TOKEN
         user_id = validate_verification_token(token, 'email')
         
         if not user_id:
@@ -97,7 +100,7 @@ class AuthService:
         user = User.query.filter_by(email=email).first()
         
         # CHECK IF USER EXISTS AND PASSWORD IS CORRECT
-        if not user or not user.check_password(password):
+        if not user or not check_password(password, user.password_hash):  # DIRECTLY USE UTILITY FUNCTION
             return None, "Invalid email or password"
             
         # CHECK IF USER IS VERIFIED
@@ -165,7 +168,7 @@ class AuthService:
         if not user:
             return True, None
             
-        # GENERATE PASSWORD RESET TOKEN USING UTILITY FUNCTION
+        # GENERATING PASSWORD RESET TOKEN USING UTILITY FUNCTION
         reset_token = generate_verification_token(
             user_id=user.id,
             token_type='password_reset',
@@ -202,8 +205,8 @@ class AuthService:
         if not user:
             return False, "User not found"
             
-        # UPDATE PASSWORD
-        user.set_password(new_password)
+        # UPDATE PASSWORD DIRECTLY WITH UTILITY FUNCTION
+        user.password_hash = hash_password(new_password)
         
         # REVOKE ALL REFRESH TOKENS FOR THIS USER (FORCE LOGIN AGAIN)
         RefreshToken.query.filter_by(user_id=user.id).update({'is_revoked': True})

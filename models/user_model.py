@@ -18,4 +18,14 @@ class User(db.Model):
     # SPECIAL METHOD TO REPRESENT THE OBJECT AS A STRING
     def __repr__(self):
         return f'<User {self.email}>'
-    
+        
+    # METHOD TO CONVERT THE OBJECT TO A DICTIONARY
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'is_verified': self.is_verified,
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
