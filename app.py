@@ -3,6 +3,7 @@ from configuration.config import Config
 from models.user_model import db
 from routes.auth_routes import auth_bp
 from flask_jwt_extended import JWTManager
+from flask_mail import Mail
 from sqlalchemy import text
 
 def create_app(config_class=Config):
@@ -12,6 +13,7 @@ def create_app(config_class=Config):
     # Initialize extensions
     db.init_app(app)
     jwt = JWTManager(app)
+    mail = Mail(app)  # INITIALIZE FLASK-MAIL
 
     # Register blueprints
     app.register_blueprint(auth_bp)
@@ -41,7 +43,7 @@ def create_app(config_class=Config):
 if __name__ == '__main__':
     app = create_app()
     # Uncomment to create tables on startup
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()  # UNCOMMENTED TO CREATE ALL TABLES
 
     app.run(debug=True)
