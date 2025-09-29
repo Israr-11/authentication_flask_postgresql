@@ -8,6 +8,7 @@ class EmailService:
     def send_verification_email(self, user_email, user_name, verification_token):
         """Send email verification link to user"""
         # CREATE EMAIL VERIFICATION URL
+        # FRONTEND URL IS OBTAINED FROM CURRENT APP'S CONFIG
         verification_url = f"{current_app.config.get('FRONTEND_URL', 'http://localhost:5000')}/auth/verify/{verification_token}"
         
         subject = "Verify Your Email Address"
@@ -23,7 +24,7 @@ class EmailService:
         If you did not register for an account, please ignore this email.
         
         Best regards,
-        The Team
+        Israr
         """
         
         self._send_email(user_email, subject, body)
@@ -46,7 +47,7 @@ class EmailService:
         If you did not request a password reset, please ignore this email.
         
         Best regards,
-        The Team
+        Israr
         """
         
         self._send_email(user_email, subject, body)

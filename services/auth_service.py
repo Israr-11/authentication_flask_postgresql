@@ -1,11 +1,19 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from models.user_model import db, User
-from models.verification_model import VerificationToken
 from models.refresh_token_model import RefreshToken
 from services.email_service import EmailService
 from flask_jwt_extended import create_access_token
 from flask import current_app
 import re
+# IMPORT UTILITY FUNCTIONS
+from utils.auth_utils import (
+    generate_verification_token,
+    validate_verification_token,
+    create_refresh_token,
+    validate_refresh_token,
+    revoke_refresh_token
+)
+from utils.user_utils import validate_password_strength
 
 class AuthService:
     def __init__(self):
@@ -28,9 +36,10 @@ class AuthService:
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return None, "Invalid email format"
             
-        # VALIDATE PASSWORD STRENGTH
-        if len(password) < 8:
-            return None, "Password must be at least 8 characters"
+        # VALIDATE PASSWORD STRENGTH USING UTILITY FUNCTION
+        is_valid, message = validate_password_strength(password)
+        if not is_valid:
+            return None, message
             
         # CREATE NEW USER (UNVERIFIED)
         user = User(
@@ -45,8 +54,8 @@ class AuthService:
         db.session.add(user)
         db.session.commit()
         
-        # GENERATE VERIFICATION TOKEN
-        verification_token = VerificationToken.generate_token(
+        # GENERATE VERIFICATION TOKEN USING UTILITY FUNCTION
+        verification_token = generate_verification_token(
             user_id=user.id,
             token_type='email',
             expiration_hours=24
@@ -67,7 +76,8 @@ class AuthService:
         
     def verify_email(self, token):
         """Verify user email with token"""
-        user_id = VerificationToken.validate_token(token, 'email')
+        # USE UTILITY FUNCTION TO VALIDATE TOKEN
+        user_id = validate_verification_token(token, 'email')
         
         if not user_id:
             return False, "Invalid or expired verification link"
@@ -103,9 +113,10 @@ class AuthService:
             }
         )
         
-        # CREATE REFRESH TOKEN WITH DEVICE INFO
-        refresh_token = self._create_refresh_token(
-            user.id, 
+        # CREATE REFRESH TOKEN WITH DEVICE INFO USING UTILITY FUNCTION
+        refresh_token = create_refresh_token(
+            user_id=user.id,
+            expires_seconds=current_app.config.get('JWT_REFRESH_TOKEN_EXPIRES', 2592000),
             ip_address=request_info.get('ip') if request_info else None,
             user_agent=request_info.get('device') if request_info else None
         )
@@ -118,8 +129,8 @@ class AuthService:
         
     def refresh_access_token(self, refresh_token_str):
         """Generate new access token using refresh token"""
-        # VALIDATE REFRESH TOKEN
-        is_valid, user_id = RefreshToken.is_valid(refresh_token_str)
+        # VALIDATE REFRESH TOKEN USING UTILITY FUNCTION
+        is_valid, user_id = validate_refresh_token(refresh_token_str)
         
         if not is_valid or not user_id:
             return None, "Invalid or expired refresh token"
@@ -142,25 +153,25 @@ class AuthService:
     def logout(self, refresh_token_str):
         """Revoke refresh token on logout"""
         if refresh_token_str:
-            RefreshToken.revoke(refresh_token_str)
+            # USE UTILITY FUNCTION TO REVOKE TOKEN
+            revoke_refresh_token(refresh_token_str)
         return True
         
     def request_password_reset(self, email):
         """Generate and send password reset token"""
         user = User.query.filter_by(email=email).first()
     
-        # DON'T REVEAL IF EMAIL EXISTS FOR SECURITY
+        # NOT REVEALING IF EMAIL EXISTS FOR SECURITY
         if not user:
             return True, None
             
-        # GENERATE PASSWORD RESET TOKEN (EXPIRES IN 1 HOUR)
-        reset_token = VerificationToken.generate_token(
+        # GENERATE PASSWORD RESET TOKEN USING UTILITY FUNCTION
+        reset_token = generate_verification_token(
             user_id=user.id,
             token_type='password_reset',
             expiration_hours=1
         )
         
-        print("Reset Token:", reset_token)  # FOR DEBUGGING PURPOSES
         # SEND PASSWORD RESET EMAIL
         try:
             self._get_email_service().send_password_reset_email(
@@ -176,14 +187,16 @@ class AuthService:
         
     def reset_password(self, token, new_password):
         """Reset user password using token"""
-        user_id = VerificationToken.validate_token(token, 'password_reset')
+        # VALIDATE TOKEN USING UTILITY FUNCTION
+        user_id = validate_verification_token(token, 'password_reset')
         
         if not user_id:
             return False, "Invalid or expired reset link"
             
-        # VALIDATE PASSWORD STRENGTH
-        if len(new_password) < 8:
-            return False, "Password must be at least 8 characters"
+        # VALIDATE PASSWORD STRENGTH USING UTILITY FUNCTION
+        is_valid, message = validate_password_strength(new_password)
+        if not is_valid:
+            return False, message
             
         user = User.query.get(user_id)
         if not user:
@@ -198,27 +211,3 @@ class AuthService:
         db.session.commit()
         
         return True, "Password reset successfully! You can now log in with your new password."
-        
-    def _create_refresh_token(self, user_id, ip_address=None, user_agent=None):
-        """Create and store refresh token"""
-        # GENERATE TOKEN
-        token_str = RefreshToken.generate_token()
-        
-        # SET EXPIRATION (30 DAYS)
-        expires_at = datetime.now(timezone.utc) + timedelta(
-            seconds=current_app.config.get('JWT_REFRESH_TOKEN_EXPIRES', 2592000)
-        )
-        
-        # CREATE TOKEN RECORD
-        token = RefreshToken(
-            token=token_str,
-            user_id=user_id,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            expires_at=expires_at
-        )
-        
-        db.session.add(token)
-        db.session.commit()
-        
-        return token_str
