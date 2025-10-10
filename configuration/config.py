@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
+
 # LOAD ENVIRONMENT VARIABLES FROM .env FILE
 load_dotenv()
 
