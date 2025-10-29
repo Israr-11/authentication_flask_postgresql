@@ -92,7 +92,7 @@ It includes secure user registration, email verification, login with tokens, pas
 
 ---
 
-## 🚀 Setup
+## Setup
 
 ```bash
 # Clone the repo
