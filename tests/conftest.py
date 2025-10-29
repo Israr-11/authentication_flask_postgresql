@@ -7,22 +7,40 @@ from configuration.test_config import TestConfig
 from utils.user_utils import hash_password
 from datetime import datetime, timezone, timedelta
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def app():
-    """Create and configure a test app instance"""
+    """Create and configure a test app instance for entire test session"""
     app = create_app(TestConfig)
     
     with app.app_context():
-        # CREATE ALL TABLES
+        # CREATE ALL TABLES ONCE FOR THE SESSION
         db.create_all()
         yield app
-        # CLEAN UP AFTER TEST
-        db.session.remove()
+        # DROP ALL TABLES AFTER ALL TESTS ARE DONE
         db.drop_all()
 
 @pytest.fixture(scope='function')
+def db_session(app):
+    """Create a database session for each test function with automatic cleanup"""
+    with app.app_context():
+        # START A TRANSACTION
+        connection = db.engine.connect()
+        transaction = connection.begin()
+        
+        # BIND THE SESSION TO THE TRANSACTION
+        session = db.session
+        session.bind = connection
+        
+        yield session
+        
+        # ROLLBACK TRANSACTION AFTER TEST (CLEANUP)
+        transaction.rollback()
+        connection.close()
+        session.remove()
+
+@pytest.fixture(scope='function')
 def client(app):
-    """Create a test client"""
+    """Create a test client for each test"""
     return app.test_client()
 
 @pytest.fixture(scope='function')
@@ -30,15 +48,9 @@ def runner(app):
     """Create a test CLI runner"""
     return app.test_cli_runner()
 
-@pytest.fixture(scope='function')
-def db_session(app):
-    """Create a database session for testing"""
-    with app.app_context():
-        yield db.session
-
 @pytest.fixture
 def sample_user(db_session):
-    """Create a sample user for testing"""
+    """Create a sample verified user for testing"""
     user = User(
         name="Test User",
         email="test@example.com",
@@ -48,6 +60,7 @@ def sample_user(db_session):
     )
     db_session.add(user)
     db_session.commit()
+    db_session.refresh(user)  # REFRESH TO GET ID
     return user
 
 @pytest.fixture
@@ -62,6 +75,7 @@ def unverified_user(db_session):
     )
     db_session.add(user)
     db_session.commit()
+    db_session.refresh(user)
     return user
 
 @pytest.fixture
@@ -76,6 +90,7 @@ def admin_user(db_session):
     )
     db_session.add(user)
     db_session.commit()
+    db_session.refresh(user)
     return user
 
 @pytest.fixture
@@ -90,6 +105,7 @@ def verification_token(db_session, unverified_user):
     )
     db_session.add(token)
     db_session.commit()
+    db_session.refresh(token)
     return token
 
 @pytest.fixture
@@ -104,6 +120,7 @@ def expired_verification_token(db_session, unverified_user):
     )
     db_session.add(token)
     db_session.commit()
+    db_session.refresh(token)
     return token
 
 @pytest.fixture
@@ -118,6 +135,7 @@ def reset_token(db_session, sample_user):
     )
     db_session.add(token)
     db_session.commit()
+    db_session.refresh(token)
     return token
 
 @pytest.fixture
@@ -134,6 +152,7 @@ def refresh_token(db_session, sample_user):
     )
     db_session.add(token)
     db_session.commit()
+    db_session.refresh(token)
     return token
 
 @pytest.fixture
