@@ -70,7 +70,7 @@ It includes secure user registration, email verification, login with tokens, pas
 
 ---
 
-## ✅ Security Best Practices Used
+## Security Best Practices Used
 
 * Access tokens stored in **HTTP-only cookies** (safe from JavaScript access)
 * Refresh tokens tracked in the **database** (can be revoked anytime)
@@ -81,7 +81,7 @@ It includes secure user registration, email verification, login with tokens, pas
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 * **Python (Flask)**
 * **PostgreSQL + SQLAlchemy**
