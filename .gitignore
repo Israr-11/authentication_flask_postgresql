@@ -45,6 +45,7 @@ htmlcov/
 .tox/
 *.cover
 .hypothesis/
+test_reports/
 
 # Database
 *.db
