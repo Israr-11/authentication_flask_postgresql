@@ -11,8 +11,14 @@ class RefreshToken(db.Model):
     ip_address = db.Column(db.String(45), nullable=True)  # IPV6 CAN BE UP TO 45 CHARS
     user_agent = db.Column(db.String(255), nullable=True)
     is_revoked = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    expires_at = db.Column(db.DateTime, nullable=False)
+    # ADD timezone=True TO STORE TIMEZONE-AWARE DATETIMES
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=False)
     
     def __repr__(self):
         return f'<RefreshToken {self.id} for user {self.user_id}>'
+    
+    def is_expired(self):
+        """Check if token has expired"""
+        now = datetime.now(timezone.utc)
+        return now > self.expires_at
