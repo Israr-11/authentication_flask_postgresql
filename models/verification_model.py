@@ -9,8 +9,14 @@ class VerificationToken(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_type = db.Column(db.String(20), nullable=False)  # 'email' or 'password_reset'
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<VerificationToken {self.token_type} for user {self.user_id}>'
+    
+    def is_expired(self):
+        """Check if token has expired - FIXED TIMEZONE ISSUE"""
+        # Ensure both datetimes are timezone-aware
+        now = datetime.now(timezone.utc)
+        return now > self.expires_at

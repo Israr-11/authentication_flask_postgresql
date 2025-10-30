@@ -21,22 +21,22 @@ def app():
 
 @pytest.fixture(scope='function')
 def db_session(app):
-    """Create a database session for each test function with automatic cleanup"""
+    """Create a clean database session for each test function"""
     with app.app_context():
-        # START A TRANSACTION
-        connection = db.engine.connect()
-        transaction = connection.begin()
+        # Clean up any existing data before test
+        db.session.remove()
         
-        # BIND THE SESSION TO THE TRANSACTION
-        session = db.session
-        session.bind = connection
+        # Clear all tables but don't drop them
+        RefreshToken.query.delete()
+        VerificationToken.query.delete()
+        User.query.delete()
+        db.session.commit()
         
-        yield session
+        yield db.session
         
-        # ROLLBACK TRANSACTION AFTER TEST (CLEANUP)
-        transaction.rollback()
-        connection.close()
-        session.remove()
+        # Clean up after test
+        db.session.rollback()
+        db.session.remove()
 
 @pytest.fixture(scope='function')
 def client(app):
