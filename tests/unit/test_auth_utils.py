@@ -180,9 +180,13 @@ class TestRefreshTokenUtils:
     def test_validate_refresh_token_revoked(self, app, db_session, refresh_token):
         """Test validating a revoked refresh token"""
         with app.app_context():
-            # REVOKE THE TOKEN
-            refresh_token.is_revoked = True
+            # REVOKE THE TOKEN PROPERLY
+            token_to_revoke = RefreshToken.query.filter_by(token=refresh_token.token).first()
+            token_to_revoke.is_revoked = True
             db_session.commit()
+            
+            # EXPIRE THE SESSION TO FORCE REFRESH FROM DB
+            db_session.expire_all()
             
             is_valid, user_id = validate_refresh_token(refresh_token.token)
             
