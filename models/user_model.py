@@ -12,7 +12,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')  # 'user' or 'admin'
     is_verified = db.Column(db.Boolean, default=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    # ADD timezone=True TO STORE TIMEZONE-AWARE DATETIMES
+    # ADDED timezone=True TO STORE TIMEZONE-AWARE DATETIMES
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(
         db.DateTime(timezone=True), 
