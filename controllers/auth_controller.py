@@ -3,6 +3,7 @@ from services.auth_service import AuthService
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from models.user_model import User
 
+
 class AuthController:
     def __init__(self):
         self.auth_service = AuthService()
